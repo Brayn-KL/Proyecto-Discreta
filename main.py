@@ -12,8 +12,6 @@ alphabet = {"a", "b", "c", "d", "e", "f"}
 delta = {
     ("q0", "a"): "q0",
     ("q0", "b"): "q2",
-    ("q0", "c"): "q3",
-    ("q0", "d"): "q1",
 
     ("q1", "b"): "q2",
     ("q1", "c"): "q4",
@@ -72,12 +70,14 @@ def run(s):
 
     return steps, q in F
 
+
 # ===== Crear grafo =====
 G = nx.MultiDiGraph()
 G.add_nodes_from(states)
 
 for (q, a), p in delta.items():
     G.add_edge(q, p, key=a, label=a)
+
 
 # ===== Posiciones =====
 pos = {
@@ -91,18 +91,20 @@ pos = {
     "q7": (3, -2),
 }
 
+
 # ===== Punto medio =====
 def _mid(p1, p2, offset=0.12):
     (x1, y1), (x2, y2) = p1, p2
-    mx, my = (x1 + x2) / 2, (y1 + y2) / 2
-    dx, dy = x2 - x1, y2 - y1
+    mx, my = (x1+x2)/2, (y1+y2)/2
+    dx, dy = x2-x1, y2-y1
     nx_, ny_ = -dy, dx
-    L = (nx_**2 + ny_**2) ** 0.5
+    L = (nx_**2 + ny_**2)**0.5
 
     if L == 0:
         return mx, my
 
-    return mx + offset * nx_ / L, my + offset * ny_ / L
+    return mx + offset*nx_/L, my + offset*ny_/L
+
 
 # ===== Dibujar =====
 def draw_step(current, idx, sym=None):
@@ -135,7 +137,7 @@ def draw_step(current, idx, sym=None):
         linewidths=linewidths
     )
 
-    labels = {n: nombres[n] for n in nodes}
+    labels = {n:nombres[n] for n in nodes}
 
     nx.draw_networkx_labels(
         G,
@@ -146,14 +148,14 @@ def draw_step(current, idx, sym=None):
 
     seen = {}
 
-    for u, v, k, d in G.edges(keys=True, data=True):
+    for u,v,k,d in G.edges(keys=True,data=True):
 
         if u == v:
-            x, y = pos[u]
+            x,y = pos[u]
 
             arrow = FancyArrowPatch(
-                (x, y),
-                (x + 0.01, y + 0.01),
+                (x,y),
+                (x+0.01,y+0.01),
                 connectionstyle="arc3,rad=0.5",
                 arrowstyle='-|>',
                 mutation_scale=20
@@ -162,33 +164,33 @@ def draw_step(current, idx, sym=None):
             plt.gca().add_patch(arrow)
 
             plt.text(
-                x + 0.25,
-                y + 0.25,
+                x+0.25,
+                y+0.25,
                 d["label"],
                 fontsize=10,
                 weight='bold'
             )
 
         else:
-            i = seen.get((u, v), 0)
-            seen[(u, v)] = i + 1
+            i = seen.get((u,v),0)
+            seen[(u,v)] = i+1
 
-            rad = 0.20 if i % 2 == 0 else -0.20
+            rad = 0.20 if i%2==0 else -0.20
 
             nx.draw_networkx_edges(
                 G,
                 pos,
-                edgelist=[(u, v)],
+                edgelist=[(u,v)],
                 arrows=True,
                 arrowstyle='-|>',
                 arrowsize=20,
                 connectionstyle=f"arc3,rad={rad}"
             )
 
-            lx, ly = _mid(
+            lx,ly = _mid(
                 pos[u],
                 pos[v],
-                0.15 if i % 2 == 0 else -0.15
+                0.15 if i%2==0 else -0.15
             )
 
             plt.text(
@@ -199,12 +201,12 @@ def draw_step(current, idx, sym=None):
                 weight='bold'
             )
 
-    # círculo doble del estado final
+
     for state in F:
-        x, y = pos[state]
+        x,y = pos[state]
 
         circle = plt.Circle(
-            (x, y),
+            (x,y),
             0.18,
             fill=False,
             linewidth=2
@@ -223,18 +225,17 @@ def draw_step(current, idx, sym=None):
     plt.tight_layout()
     plt.pause(1)
 
+
 # ===== Programa principal =====
 def main():
 
-    if len(sys.argv) > 1:
-        s = sys.argv[1].strip()
+    if len(sys.argv)>1:
+        s=sys.argv[1].strip()
     else:
-        s = input(
-            "Ingrese la secuencia: "
-        ).strip()
+        s=input("Ingrese la secuencia: ").strip()
 
     try:
-        steps, accepted = run(s)
+        steps,accepted=run(s)
 
         print(
             "ACEPTA"
@@ -243,11 +244,11 @@ def main():
         )
 
         plt.ion()
-        plt.figure(figsize=(10, 6))
+        plt.figure(figsize=(10,6))
 
-        draw_step(steps[0], 0)
+        draw_step(steps[0],0)
 
-        for i, ch in enumerate(s, 1):
+        for i,ch in enumerate(s,1):
             draw_step(
                 steps[i],
                 i,
@@ -258,7 +259,8 @@ def main():
         plt.show()
 
     except ValueError as e:
-        print("RECHAZA:", e)
+        print("RECHAZA:",e)
 
-if __name__ == "__main__":
+
+if __name__=="__main__":
     main()
