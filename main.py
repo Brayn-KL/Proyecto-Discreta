@@ -53,14 +53,37 @@ for (q, a), p in delta.items():
 
 # Posiciones fijas para una vista vertical (similar a la imagen)
 pos = {
-    "q0": (0, 3.0),
-    "q1": (0, 2.0),
-    "q2": (0, 1.0),
-    "q3": (0, 0.0),
-    "q4": (0, -1.0),
-    "q5": (0, -2.0),
-    "q6": (0, -3.0),
+    # Inicio de funcionamiento
+    ("q0", "a"): "q0",   # bucle
+    ("q0", "b"): "q2",   # S/2
+    ("q0", "c"): "q3",   # S/5
+    ("q0", "d"): "q1",   # S/1
+
+    # Ingresar moneda S/1
+    ("q1", "b"): "q2",
+    ("q1", "c"): "q4",
+
+    # Ingresar moneda S/2
+    ("q2", "b"): "q2",   # bucle
+    ("q2", "c"): "q1",
+    ("q2", "d"): "q3",
+
+    # Ingresar moneda S/5
+    ("q3", "c"): "q2",
+    ("q3", "d"): "q4",
+
+    # Seleccionar producto
+    ("q4", "d"): "q4",   # bucle
+    ("q4", "e"): "q5",
+    ("q4", "b"): "q7",
+
+    # Confirmar compra
+    ("q5", "e"): "q6",
+
+    # Entregar producto
+    ("q6", "f"): "q7",
 }
+
 
 # === Dibujo ===
 def _mid(p1, p2, offset=0.10):
