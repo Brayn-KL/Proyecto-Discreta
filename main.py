@@ -1,40 +1,35 @@
-# dfa_expendedora.py — Máquina expendedora (8 estados, solo 'a')
+# dfa_expendedora_imagen.py — Máquina expendedora con 6 símbolos (a-f)
 import sys
 import matplotlib.pyplot as plt
 import networkx as nx
 from matplotlib.patches import FancyArrowPatch
 
-# === Definición del DFA (Máquina Expendedora) ===
-# Estados: q0=Inicio, q1=Moneda S/1, q2=Moneda S/2, q3=Moneda S/5,
-#          q4=Seleccionar, q5=Confirmar, q6=Entregar, q7=Finalizar
-states = {f"q{i}" for i in range(8)}
-alphabet = {"a", "b"}  # Solo 'a' tiene transiciones
+# === Definición del DFA según la imagen ===
+states = {f"q{i}" for i in range(7)}          # q0 a q6
+alphabet = {"a", "b", "c", "d", "e", "f"}     # 6 símbolos
 
-# Transiciones: todas con 'a' y van al siguiente estado
+# Transiciones secuenciales
 delta = {
     ("q0", "a"): "q1",
-    ("q1", "a"): "q2",
-    ("q2", "a"): "q3",
-    ("q3", "a"): "q4",
-    ("q4", "a"): "q5",
-    ("q5", "a"): "q6",
-    ("q6", "a"): "q7",
-    # No hay transiciones con 'b' (se rechazarán)
+    ("q1", "b"): "q2",
+    ("q2", "c"): "q3",
+    ("q3", "d"): "q4",
+    ("q4", "e"): "q5",
+    ("q5", "f"): "q6",
 }
 
 q0 = "q0"
-F = {"q7"}  # Estado final: Finalizar acción
+F = {"q6"}  # Estado final: Finalizar acción
 
-# Nombres largos para mostrar en la gráfica
-nombres_estados = {
-    "q0": "Inicio",
-    "q1": "Moneda S/1",
-    "q2": "Moneda S/2",
-    "q3": "Moneda S/5",
-    "q4": "Seleccionar",
-    "q5": "Confirmar",
-    "q6": "Entregar",
-    "q7": "Finalizar"
+# Nombres largos para mostrar en la gráfica (según la imagen)
+nombres = {
+    "q0": "Inicio de funcionamiento\n(encender)",
+    "q1": "Seleccionar producto",
+    "q2": "Ingresar moneda S/1",
+    "q3": "Ingresar moneda S/2",
+    "q4": "Ingresar moneda S/5",
+    "q5": "Confirmar compra",
+    "q6": "Entregar producto\nFinalizar acción"
 }
 
 # === Simulación ===
@@ -43,9 +38,9 @@ def run(s):
     steps = [q0]
     for i, ch in enumerate(s):
         if ch not in alphabet:
-            raise ValueError(f"Carácter '{ch}' no permitido (solo a y b)")
+            raise ValueError(f"Carácter '{ch}' no permitido (solo a-f)")
         if (q, ch) not in delta:
-            raise ValueError(f"Sin transición desde {nombres_estados[q]} con '{ch}' en paso {i+1}")
+            raise ValueError(f"Sin transición desde {nombres[q].replace(chr(10),' ')} con '{ch}' en paso {i+1}")
         q = delta[(q, ch)]
         steps.append(q)
     return steps, steps[-1] in F
@@ -56,16 +51,15 @@ G.add_nodes_from(states)
 for (q, a), p in delta.items():
     G.add_edge(q, p, key=a, label=a)
 
-# Posiciones fijas para visualizar la secuencia (vertical)
+# Posiciones fijas para una vista vertical (similar a la imagen)
 pos = {
-    "q0": (0, 3.5),
-    "q1": (0, 2.5),
-    "q2": (0, 1.5),
-    "q3": (0, 0.5),
-    "q4": (0, -0.5),
-    "q5": (0, -1.5),
-    "q6": (0, -2.5),
-    "q7": (0, -3.5),
+    "q0": (0, 3.0),
+    "q1": (0, 2.0),
+    "q2": (0, 1.0),
+    "q3": (0, 0.0),
+    "q4": (0, -1.0),
+    "q5": (0, -2.0),
+    "q6": (0, -3.0),
 }
 
 # === Dibujo ===
@@ -86,7 +80,6 @@ def draw_step(current, idx, sym=None):
     # Colores y tamaños
     node_colors = ['lightblue' if n == current else 'white' for n in nodes]
     node_sizes = [900 if n == current else 600 for n in nodes]
-    edge_colors = ['red' if n == current else 'black' for n in nodes]
     linewidths = [3 if n in F else 1 for n in nodes]
     
     # Dibujar nodos
@@ -94,25 +87,25 @@ def draw_step(current, idx, sym=None):
                           node_size=node_sizes,
                           node_color=node_colors,
                           linewidths=linewidths,
-                          edgecolors=edge_colors)
+                          edgecolors='black')
     
     # Etiquetas con nombres largos
-    labels = {n: nombres_estados[n] for n in nodes}
-    nx.draw_networkx_labels(G, pos, labels=labels, font_size=9)
+    labels = {n: nombres[n] for n in nodes}
+    nx.draw_networkx_labels(G, pos, labels=labels, font_size=8)
     
     # Dibujar arcos
     seen = {}
     for u, v, k, d in G.edges(keys=True, data=True):
         if u == v:
-            # Bucle (no hay en este DFA, pero se mantiene por si acaso)
+            # No hay bucles en este DFA, pero mantenemos por si acaso
             x, y = pos[u]
-            arrow = FancyArrowPatch((x, y), (x + 0.1, y + 0.1),
+            arrow = FancyArrowPatch((x, y), (x+0.1, y+0.1),
                                    connectionstyle="arc3,rad=0.4",
                                    arrowstyle='-|>',
                                    mutation_scale=18,
                                    color='black')
             plt.gca().add_patch(arrow)
-            plt.text(x + 0.15, y + 0.15, d['label'],
+            plt.text(x+0.15, y+0.15, d['label'],
                     fontsize=10, ha='center', va='center')
         else:
             i = seen.get((u, v), 0)
@@ -128,14 +121,14 @@ def draw_step(current, idx, sym=None):
             plt.text(lx, ly, d['label'], fontsize=10,
                     ha='center', va='center', weight='bold')
     
-    # Círculo doble para estado final
+    # Círculo doble para el estado final
     for state in F:
         x, y = pos[state]
         circle = plt.Circle((x, y), 0.12, fill=False, edgecolor='black', linewidth=2)
         plt.gca().add_patch(circle)
     
     plt.axis('off')
-    titulo = f"Paso {idx}: {nombres_estados[current]}"
+    titulo = f"Paso {idx}: {nombres[current].replace(chr(10),' ')}"
     if sym:
         titulo += f" | símbolo: '{sym}'"
     plt.title(titulo)
@@ -147,7 +140,7 @@ def main():
     if len(sys.argv) > 1:
         s = sys.argv[1].strip()
     else:
-        s = input("Ingrese secuencia de pasos (solo a y b): ").strip()
+        s = input("Ingrese la secuencia (solo a,b,c,d,e,f): ").strip()
     
     if not s:
         print("ERROR: Cadena vacía")
@@ -155,10 +148,10 @@ def main():
     
     try:
         steps, accepted = run(s)
-        print(f"{'ACEPTA' if accepted else 'RECHAZA'} (estado final: {nombres_estados[steps[-1]]})")
+        print(f"{'ACEPTA' if accepted else 'RECHAZA'} (estado final: {nombres[steps[-1]].replace(chr(10),' ')})")
         
         plt.ion()
-        plt.figure(figsize=(6, 10))  # Ajuste para vista vertical
+        plt.figure(figsize=(6, 8))
         
         draw_step(steps[0], 0)
         for i, ch in enumerate(s, 1):
